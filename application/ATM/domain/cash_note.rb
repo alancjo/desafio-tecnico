@@ -4,7 +4,7 @@ module Application
 
       attr_reader :id, :value, :quantity
 
-      def initialize(id:, value:, quantity:)
+      def initialize(id: nil, value:, quantity: 0)
         @id = id
         @value = value
         @quantity = quantity
@@ -19,8 +19,17 @@ module Application
         }[value]
       end
 
+      def increase_quantity(quantity)
+        @quantity += quantity
+      end
+
+      def virtual_note?
+        @id.nil?
+      end
+
       def to_hash
         {
+          id: @id,
           value: @value,
           quantity: @quantity,
         }
