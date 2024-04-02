@@ -35,7 +35,7 @@ RSpec.describe Application::ATM::Domain::CashMachine do
               "notas" => {
                 "notasDez" => 3,
                 "notasVinte" => 0,
-                "NotasCinquenta" => 1,
+                "notasCinquenta" => 1,
                 "notasCem" => 0
               }
             },
@@ -59,9 +59,83 @@ RSpec.describe Application::ATM::Domain::CashMachine do
 
     end
 
-    context "when " do
+    context "when the cash machine refill operation success" do
+      let(:success_result) do
+        {
+          "caixa" => {
+            "caixaDisponivel" => false,
+            "notas" => {
+              "notasDez" => 3,
+              "notasVinte" => 0,
+              "notasCinquenta" => 1,
+              "notasCem" => 0
+            }
+          },
+          "erros" => []
+        }
+      end
 
+      context "when refill operation occurs the first time" do
+        it "returns a success hash with new cash notes" do
+          result = atm.add_notes(new_cash_notes: cash_notes)
+
+          expect(result).to eq(success_result)
+        end
+
+        it "checks atm notes quantity without refill operation" do
+          notes_quantity_expected = { 10 => 0, 20  => 0, 50 => 0, 100 => 0 }
+
+          expect(atm.notes_quantity).to eq(notes_quantity_expected)
+          expect(atm.total_value).to be_zero
+        end
+
+        it "checks atm notes after first refill operation" do
+          notes_quantity_expected = { 10 => 3, 20  => 0, 50 => 1, 100 => 0 }
+
+          atm.add_notes(new_cash_notes: cash_notes)
+
+          expect(atm.notes_quantity).to eq(notes_quantity_expected)
+          expect(atm.total_value).to eq(80)
+        end
+
+      end
+
+      context "when refill operation occurs the second time with atm withdrawal unavailable" do
+        before do
+          atm.update_availability(false)
+          atm.add_notes(new_cash_notes: cash_notes)
+        end
+
+        it "returns a success_hash with new cash notes" do
+          result = atm.add_notes(new_cash_notes: cash_notes)
+
+          expect(result).to eq(success_result)
+        end
+
+        it "adds new cash notes in atm with notes" do
+          new_notes_quantity_expected = { 10 => 6, 20  => 0, 50 => 2, 100 => 0 }
+
+          atm.add_notes(new_cash_notes: cash_notes)
+
+          expect(atm.notes_quantity).to eq(new_notes_quantity_expected)
+          expect(atm.total_value).to eq(160)
+        end
+
+        it "adds new cash notes twice after first refill operation" do
+          new_notes_quantity_expected = { 10 => 9, 20  => 0, 50 => 3, 100 => 0 }
+
+          atm.add_notes(new_cash_notes: cash_notes)
+          atm.add_notes(new_cash_notes: cash_notes)
+
+          expect(atm.notes_quantity).to eq(new_notes_quantity_expected)
+          expect(atm.total_value).to eq(240)
+        end
+
+      end
     end
+  end
+
+  describe ".withdraw" do
 
   end
 
