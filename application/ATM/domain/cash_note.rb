@@ -15,7 +15,7 @@ module Application
           {
             10  => "notasDez",
             20  => "notasVinte",
-            50  => "NotasCinquenta",
+            50  => "notasCinquenta",
             100 => "notasCem"
           }[value]
         end

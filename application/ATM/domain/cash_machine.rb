@@ -15,7 +15,7 @@ module Application
           raise_add_empty_notes_exception() if new_cash_notes.empty?
 
           if @cash_notes.empty?
-            @cash_notes = new_cash_notes
+            @cash_notes = new_cash_notes.map(&:clone)
 
             return render_response_json(cash_notes: new_cash_notes)
           end
@@ -34,26 +34,26 @@ module Application
         end
 
         def total_value
+          return 0 if cash_notes.empty?
+
           @cash_notes.map do |note|
             note.value * note.quantity
           end.reduce(:+)
         end
 
         def notes_quantity
-          quantity = {
+          notes_quantity = {
             10  => 0,
             20  => 0,
             50  => 0,
             100 => 0
           }
 
-          return quantity if @cash_notes.empty?
+          return notes_quantity if @cash_notes.empty?
 
-          @cash_notes.each do |note|
-            quantity[note.value] += note.quantity
-          end
+          @cash_notes.each { |note| notes_quantity[note.value] += note.quantity }
 
-          quantity
+          notes_quantity
         end
 
         def update_availability(availability)
@@ -62,10 +62,6 @@ module Application
 
         private
 
-        def update_cash_note()
-          # to-do
-        end
-
         def build_hash_from_all_notes(cash_notes)
           notes_result = cash_notes.map { |note| { "#{note.name}" => note.quantity } }
 
@@ -73,7 +69,6 @@ module Application
         end
 
         def render_response_json(cash_notes:, errors: [])
-          # binding.pry
           {
             "caixa" => {
               "caixaDisponivel" => @available,
