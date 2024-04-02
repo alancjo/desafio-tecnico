@@ -136,7 +136,107 @@ RSpec.describe Application::ATM::Domain::CashMachine do
   end
 
   describe ".withdraw" do
+    # to-do
+  end
 
+  describe ".total_value" do
+
+    context "when the atm not refill" do
+      subject(:atm) { described_class.new(id: 1, cash_notes: []) }
+
+      it "returns total value 0" do
+        expect(atm.total_value).to be_zero
+      end
+    end
+
+    context "when the atm has notes" do
+      let(:cash_notes) do
+        [
+          cash_note_class.new(value: 10, quantity: 3),
+          cash_note_class.new(value: 20, quantity: 1),
+          cash_note_class.new(value: 50, quantity: 2),
+          cash_note_class.new(value: 100, quantity: 3)
+        ]
+      end
+      subject(:atm) { described_class.new(id: 1, cash_notes: cash_notes) }
+
+      it "returns sum of all cash notes in atm" do
+        total_value_expected = 450
+
+        expect(atm.total_value).to eq(450)
+      end
+    end
+
+  end
+
+  describe ".notes_quantity" do
+
+    context "when the atm is empty" do
+      subject(:atm) { described_class.new(id: 1, cash_notes: []) }
+
+      it "returns zero for each note quantity" do
+        notes_quantity_expected = { 10 => 0, 20  => 0, 50 => 0, 100 => 0 }
+
+        expect(atm.notes_quantity).to eq(notes_quantity_expected)
+      end
+    end
+
+    context "when the atm has notes" do
+      let(:cash_notes) do
+        [
+          cash_note_class.new(value: 10, quantity: 3),
+          cash_note_class.new(value: 20, quantity: 1),
+          cash_note_class.new(value: 50, quantity: 2),
+          cash_note_class.new(value: 100, quantity: 3)
+        ]
+      end
+      subject(:atm) { described_class.new(id: 1, cash_notes: cash_notes) }
+
+      context "when atm already note" do
+        let(:notes_quantity_expected) { { 10 => 3, 20 => 1, 50 => 2, 100 => 3 } }
+
+        it "returns quantity from each note" do
+          expect(atm.notes_quantity).to eq(notes_quantity_expected)
+        end
+      end
+
+      context "when atm already note and then there's a refill" do
+        before do
+          atm.add_notes(new_cash_notes: cash_notes)
+        end
+
+        let(:notes_quantity_expected) { { 10 => 6, 20 => 2, 50 => 4, 100 => 6 } }
+
+        it "returns quantity from each note" do
+          expect(atm.notes_quantity).to eq(notes_quantity_expected)
+        end
+      end
+    end
+
+  end
+
+  describe ".update_availability" do
+    subject(:atm) { described_class.new(id: 1) }
+
+    context "when the atm is made available for use[withdrawal]" do
+      before do
+        atm.update_availability(true)
+      end
+
+      it {
+        expect(atm.available).to be_truthy
+      }
+    end
+
+    context "when the atm is made unavailable for use[withdrawal]" do
+      before do
+        atm.update_availability(false)
+      end
+
+      it {
+        expect(atm.available).to be_falsey
+      }
+    end
   end
 
 end
