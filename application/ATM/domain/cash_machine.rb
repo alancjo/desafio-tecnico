@@ -12,7 +12,7 @@ module Application
         end
 
         def add_notes(new_cash_notes: [])
-          raise StandardError.new("Para abastecer o caixa é necessário adicionar nota") if new_cash_notes.empty?
+          raise_add_empty_notes_exception() if new_cash_notes.empty?
 
           if @cash_notes.empty?
             @cash_notes = new_cash_notes
@@ -73,6 +73,7 @@ module Application
         end
 
         def render_response_json(cash_notes:, errors: [])
+          # binding.pry
           {
             "caixa" => {
               "caixaDisponivel" => @available,
@@ -80,6 +81,10 @@ module Application
             },
             "erros" => errors
           }
+        end
+
+        def raise_add_empty_notes_exception
+          raise Application::ATM::Exceptions::AddEmptyNotesinAtmException
         end
 
       end
