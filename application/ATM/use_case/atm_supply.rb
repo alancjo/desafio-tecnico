@@ -5,24 +5,28 @@ module Application
     module UseCase
       class AtmSupply
 
-        def initialize(cash_machine:, new_cash_notes:)
+        def initialize(cash_machine:)
           @cash_machine = cash_machine
-          @new_cash_notes = []
         end
 
-        def self.build(cash_machine:, new_cash_notes: [])
+        def self.build(cash_machine:)
           new(
-            cash_machine: cash_machine,
-            new_cash_notes: new_cash_notes
+            cash_machine: cash_machine
           )
         end
 
-        def execute
+        def execute(new_cash_notes:, available:)
           begin
-            @cash_machine.add_notes(new_cash_notes: new_cash_notes)
+            result = @cash_machine.add_notes(new_cash_notes: new_cash_notes)
+            @cash_machine.update_availability(available)
+
+            result
           rescue Application::ATM::Exceptions::AddEmptyNotesinAtmException => e
+            @cash_machine.update_availability(available)
             return { erros: [e.message] }
-          rescue StandardError => e
+
+          rescue => e
+            @cash_machine.update_availability(available)
             return { erros: ["erro-#{e.message}"]}
           end
         end
@@ -30,7 +34,7 @@ module Application
         private
 
         def render_response_json
-
+          # to-do
         end
 
       end

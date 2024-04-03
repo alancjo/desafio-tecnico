@@ -1,5 +1,6 @@
 require "pry"
 require "time"
+require "json"
 
 Dir.glob(File.join(__dir__,  '../application/ATM/**/*.rb')).each do |file|
   require file

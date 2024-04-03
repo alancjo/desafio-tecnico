@@ -5,21 +5,17 @@ module InputInterface
     module Atm
       class Home
 
+        @@controller
+
         def self.initialize_application
           welcome_message()
 
-          run_operation()
-
-          if rerun_application?
-            run_operation()
-          else
-            farewell_message()
-          end
+          run_operation(first_caller: true)
         end
 
         private
 
-        def self.run_operation
+        def self.run_operation(first_caller: false)
           chosen_option = operation_options()
 
           while !['1', '2'].include?(chosen_option.strip)
@@ -30,15 +26,20 @@ module InputInterface
 
           if chosen_option == '1'
             request_json = input_supply_json
-            response = controller.supply(request_json)
+
+            @@controller = build_controller(request_json) if first_caller
+
+            response = @@controller.supply(request_json)
 
             render(request_json, response)
           else
             request_json = input_withdrawal_json
-            response = controller.withdrawal(request_json)
+            response = @@controller.withdrawal(request_json)
 
             render(request_json, response)
           end
+
+          rerun_application? ? run_operation() : farewell_message()
         end
 
         def self.operation_options
@@ -115,19 +116,20 @@ module InputInterface
           false
         end
 
-        def self.controller
-          InputInterface::Controller::Atm::CashMachineController
+        def self.build_controller(request)
+          InputInterface::Controller::Atm::CashMachineController.build(first_request: request)
         end
 
         def self.render(request, response)
           puts <<-MSG
+
             ENTRADA:
 
-              #{pp request}
+              #{JSON.parse(request)}
 
             SAÍDA:
 
-              #{pp response}
+              #{response}
           MSG
         end
 
