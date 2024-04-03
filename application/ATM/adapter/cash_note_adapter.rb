@@ -13,32 +13,31 @@ module Application
           )
         end
 
-        def translate(note:, quantity:)
+        def translate!(note:, quantity:)
           value = note_value(note)
 
           @cash_note_domain.new(value: value, quantity: quantity)
         end
 
-        def translate_collection(input_cash_notes)
-          cash_notes = input_cash_notes.dig(:caixa, :notas)
+        def translate_collection!(input_cash_notes)
+          cash_notes = input_cash_notes.dig("caixa", "notas")
 
           [].tap do |new_cash_notes|
             cash_notes.each do |note, quantity|
-              new_cash_notes << translate(note: note, quantity: quantity)
+              new_cash_notes << translate!(note: note, quantity: quantity)
             end
           end
-
         end
 
         private
 
         def note_value(value)
           {
-            notasDez: 10,
-            notasVinte: 20,
-            notasCinquenta: 50 ,
-            notasCem: 100,
-          }[value.to_sym]
+            "notasDez" => 10,
+            "notasVinte" => 20,
+            "notasCinquenta" => 50 ,
+            "notasCem" => 100,
+          }[value.to_s]
         end
 
       end
