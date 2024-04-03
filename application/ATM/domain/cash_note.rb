@@ -3,10 +3,9 @@ module Application
     module Domain
       class CashNote
 
-        attr_reader :id, :value, :quantity
+        attr_reader :value, :quantity
 
         def initialize(value:, quantity: 0)
-          @id = id
           @value = value
           @quantity = quantity
         end
