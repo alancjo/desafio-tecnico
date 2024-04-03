@@ -5,7 +5,7 @@ module Application
 
         attr_reader :id, :value, :quantity
 
-        def initialize(id: nil, value:, quantity: 0)
+        def initialize(value:, quantity: 0)
           @id = id
           @value = value
           @quantity = quantity
@@ -34,10 +34,6 @@ module Application
           @quantity -= quantity_to_remove
 
           value_to_withdraw - (@value * quantity_to_remove)
-        end
-
-        def virtual_note?
-          @id.nil?
         end
 
         def to_hash

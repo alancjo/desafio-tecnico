@@ -7,8 +7,7 @@ module Application
 
         attr_reader :available, :cash_notes
 
-        def initialize(id:, available: false, cash_notes: [])
-          @id = id
+        def initialize(available: false, cash_notes: [])
           @available = available
           @cash_notes = cash_notes
           @withdrawal_record = []
@@ -20,16 +19,16 @@ module Application
           if @cash_notes.empty?
             @cash_notes = new_cash_notes.map(&:clone)
 
-            return render_response_json(cash_notes: new_cash_notes, caller_method: __method__)
+            return render_response_json(cash_notes: new_cash_notes)
           end
 
-          return render_response_json(cash_notes: new_cash_notes, errors: ["caixa-em-uso"], caller_method: __method__) if @available
+          return render_response_json(cash_notes: new_cash_notes, errors: ["caixa-em-uso"]) if @available
 
           @cash_notes.sort_by!(&:value); new_cash_notes.sort_by!(&:value)
 
           new_cash_notes.each_with_index { |new_note, index| @cash_notes[index].increase_quantity(new_note.quantity) }
 
-          render_response_json(cash_notes: new_cash_notes, caller_method: __method__)
+          render_response_json(cash_notes: new_cash_notes)
         end
 
         def withdraw(withdraw_hash: {})
@@ -39,7 +38,7 @@ module Application
           value_to_withdraw = withdraw_hash.dig("saque", "valor").to_i
           withdraw_datetime = Time.parse(withdraw_hash.dig("saque", "horario"))
 
-          raise Application::ATM::Exceptions::DoubleWithdrawalException
+          # raise Application::ATM::Exceptions::DoubleWithdrawalException
 
           raise Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException if value_to_withdraw > total_value()
 
@@ -51,7 +50,7 @@ module Application
             value_to_withdraw = cash_note.withdraw(value_to_withdraw)
           end
 
-          render_response_json(cash_notes: @cash_notes, caller_method: __method__)
+          render_response_json(cash_notes: @cash_notes)
         end
 
         def total_value
