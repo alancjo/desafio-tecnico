@@ -1,1 +1,4 @@
 { "caixa":{ "caixaDisponivel":false, "notas":{ "notasDez":100, "notasVinte":50, "notasCinquenta":10, "notasCem":30 } } }
+
+
+{ "saque":{ "valor":600, "horario":"2019-02-13T11:01:01.000Z" } }
