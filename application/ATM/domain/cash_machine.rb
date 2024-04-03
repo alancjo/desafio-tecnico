@@ -1,3 +1,5 @@
+require "time"
+
 module Application
   module ATM
     module Domain
@@ -9,6 +11,7 @@ module Application
           @id = id
           @available = available
           @cash_notes = cash_notes
+          @withdrawal_record = []
         end
 
         def add_notes(new_cash_notes: [])
@@ -17,35 +20,38 @@ module Application
           if @cash_notes.empty?
             @cash_notes = new_cash_notes.map(&:clone)
 
-            return render_response_json(cash_notes: new_cash_notes)
+            return render_response_json(cash_notes: new_cash_notes, caller_method: __method__)
           end
 
-          return render_response_json(cash_notes: new_cash_notes, errors: ["caixa-em-uso"]) if @available
+          return render_response_json(cash_notes: new_cash_notes, errors: ["caixa-em-uso"], caller_method: __method__) if @available
 
           @cash_notes.sort_by!(&:value); new_cash_notes.sort_by!(&:value)
 
           new_cash_notes.each_with_index { |new_note, index| @cash_notes[index].increase_quantity(new_note.quantity) }
 
-          render_response_json(cash_notes: new_cash_notes)
+          render_response_json(cash_notes: new_cash_notes, caller_method: __method__)
         end
 
         def withdraw(withdraw_hash: {})
-          value_to_withdraw = withdraw_hash.dig("saque", "valor").to_i
-          withdraw_datetime = withdraw_hash.dig("saque", "horario")
+          raise Application::ATM::Exceptions::NonExistentAtmException if @cash_notes.empty?
+          raise Application::ATM::Exceptions::AtmUnavailableForWithdrawalException unless @available
 
-          # 3 - Valor indisponível
-          raise StandardError.new("Valor indisponível") if value_to_withdraw > total_value()
+          value_to_withdraw = withdraw_hash.dig("saque", "valor").to_i
+          withdraw_datetime = Time.parse(withdraw_hash.dig("saque", "horario"))
+
+          raise Application::ATM::Exceptions::DoubleWithdrawalException
+
+          raise Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException if value_to_withdraw > total_value()
 
           reverse_notes_by_value = @cash_notes.sort_by { |cash_note| -cash_note.value }
 
-          # 1 - Saque com sucesso
           reverse_notes_by_value.each do |cash_note|
             break if value_to_withdraw.zero?
 
             value_to_withdraw = cash_note.withdraw(value_to_withdraw)
           end
 
-          render_response_json(cash_notes: @cash_notes)
+          render_response_json(cash_notes: @cash_notes, caller_method: __method__)
         end
 
         def total_value
@@ -93,8 +99,14 @@ module Application
           }
         end
 
-        def render_withdraw_response_json(value)
+        def render_withdraw_response_json(cash_notes:, withdraw_hash:, errors: [])
 
+          if errors.empty?
+            @withdrawal_record << withdraw_hash
+          end
+
+
+          render_response_json(cash_notes: cash_notes, errors: errors)
         end
 
         def raise_add_empty_notes_exception

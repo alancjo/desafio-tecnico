@@ -158,8 +158,30 @@ RSpec.describe Application::ATM::Domain::CashMachine do
       it "raises an exception" do
         expect {
           atm.withdraw(withdraw_hash: withdraw_hash)
-        }.to raise_error(StandardError, "Valor indisponível")
+        }.to raise_error(Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException, "valor-indisponivel")
       end
+    end
+
+    context "when the same amount tries to be withdrawn in an interval of less than 10 minutes" do
+      before do
+        atm.withdraw(withdraw_hash: { "saque" => { "valor" => 140, "horario" => "2019-02-13T11:00:00.000Z" } })
+      end
+
+      let(:withdraw_hash) do
+        {
+          "saque" => {
+            "valor" => 140,
+            "horario" => "2019-02-13T11:09:00.000Z"
+          }
+        }
+      end
+
+      it "raises an exception" do
+        expect {
+          atm.withdraw(withdraw_hash: withdraw_hash)
+        }.to raise_error(Application::ATM::Exceptions::DoubleWithdrawalException, "saque-duplicado")
+      end
+
     end
 
     context "when the withdrawal operation was successful" do
