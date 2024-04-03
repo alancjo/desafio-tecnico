@@ -37,7 +37,6 @@ module Application
 
         def to_hash
           {
-            id: @id,
             value: @value,
             quantity: @quantity,
           }

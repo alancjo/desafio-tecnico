@@ -1,4 +1,3 @@
-require "./config/application.rb"
 
 RSpec.describe Application::ATM::Domain::CashMachine do
 
