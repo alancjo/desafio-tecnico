@@ -1,11 +1,9 @@
-require "time"
-
 module Application
   module ATM
     module Domain
       class CashMachine
 
-        attr_reader :available, :cash_notes
+        attr_reader :available, :cash_notes, :withdrawal_record
 
         def initialize(available: false, cash_notes: [])
           @available = available
@@ -38,9 +36,8 @@ module Application
           value_to_withdraw = withdraw_hash.dig("saque", "valor").to_i
           withdraw_datetime = Time.parse(withdraw_hash.dig("saque", "horario"))
 
-          # raise Application::ATM::Exceptions::DoubleWithdrawalException
-
           raise Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException if value_to_withdraw > total_value()
+          raise Application::ATM::Exceptions::DoubleWithdrawalException if double_withdrawal_in_10_minutes?(withdraw_hash)
 
           reverse_notes_by_value = @cash_notes.sort_by { |cash_note| -cash_note.value }
 
@@ -50,7 +47,7 @@ module Application
             value_to_withdraw = cash_note.withdraw(value_to_withdraw)
           end
 
-          render_response_json(cash_notes: @cash_notes)
+          render_withdraw_response_json(cash_notes: @cash_notes, withdraw_hash: withdraw_hash)
         end
 
         def total_value
@@ -98,12 +95,30 @@ module Application
           }
         end
 
-        def render_withdraw_response_json(cash_notes:, withdraw_hash:, errors: [])
+        def double_withdrawal_in_10_minutes?(current_withdrawal)
+          return false if @withdrawal_record.empty?
 
-          if errors.empty?
-            @withdrawal_record << withdraw_hash
+          current_withdrawal = current_withdrawal["saque"]
+
+          current_withdraw_time = Time.parse(current_withdrawal["horario"])
+
+          @withdrawal_record.any? do |past_withdrawals|
+            past_withdraw_time = Time.parse(past_withdrawals["horario"])
+
+            equal_value = past_withdrawals["valor"] == current_withdrawal["valor"]
+
+            next unless equal_value
+
+            time_difference_between_withdrawals = (current_withdraw_time - past_withdraw_time) / 60
+
+            time_difference_between_withdrawals < 10
           end
+        end
 
+        def render_withdraw_response_json(cash_notes:, withdraw_hash:, errors: [])
+          if errors.empty?
+            @withdrawal_record << withdraw_hash["saque"]
+          end
 
           render_response_json(cash_notes: cash_notes, errors: errors)
         end
