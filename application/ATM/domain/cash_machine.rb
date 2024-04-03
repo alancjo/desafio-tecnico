@@ -29,8 +29,23 @@ module Application
           render_response_json(cash_notes: new_cash_notes)
         end
 
-        def withdraw(remove_cash_notes)
-          # to-do
+        def withdraw(withdraw_hash: {})
+          value_to_withdraw = withdraw_hash.dig("saque", "valor").to_i
+          withdraw_datetime = withdraw_hash.dig("saque", "horario")
+
+          # 3 - Valor indisponível
+          raise StandardError.new("Valor indisponível") if value_to_withdraw > total_value()
+
+          reverse_notes_by_value = @cash_notes.sort_by { |cash_note| -cash_note.value }
+
+          # 1 - Saque com sucesso
+          reverse_notes_by_value.each do |cash_note|
+            break if value_to_withdraw.zero?
+
+            value_to_withdraw = cash_note.withdraw(value_to_withdraw)
+          end
+
+          render_response_json(cash_notes: @cash_notes)
         end
 
         def total_value
@@ -76,6 +91,10 @@ module Application
             },
             "erros" => errors
           }
+        end
+
+        def render_withdraw_response_json(value)
+
         end
 
         def raise_add_empty_notes_exception

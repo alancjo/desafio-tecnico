@@ -54,7 +54,6 @@ RSpec.describe Application::ATM::Domain::CashMachine do
           expect(result).to be_instance_of(Hash)
           expect(result).to eq(fail_add_note_result)
         end
-
       end
 
     end
@@ -136,7 +135,103 @@ RSpec.describe Application::ATM::Domain::CashMachine do
   end
 
   describe ".withdraw" do
-    # to-do
+    let(:cash_notes) do
+      [
+        cash_note_class.new(value: 10, quantity: 2),
+        cash_note_class.new(value: 20, quantity: 4),
+        cash_note_class.new(value: 50, quantity: 5),
+        cash_note_class.new(value: 100, quantity: 1)
+      ]
+    end
+    subject(:atm) { described_class.new(id: 1, cash_notes: cash_notes) }
+
+    context "when the value to withdraw than more atm value[R$ 450.00]" do
+      let(:withdraw_hash) do
+        {
+          "saque" => {
+            "valor" => 500,
+            "horario" => "2019-02-13T11:01:01.000Z"
+          }
+        }
+      end
+
+      it "raises an exception" do
+        expect {
+          atm.withdraw(withdraw_hash: withdraw_hash)
+        }.to raise_error(StandardError, "Valor indisponível")
+      end
+    end
+
+    context "when the withdrawal operation was successful" do
+      let(:withdraw_hash) do
+        {
+          "saque" => {
+            "valor" => 80,
+            "horario" => "2024-02-13T11:01:01.000Z"
+          }
+        }
+      end
+
+      context "when the first withdrawal is made" do
+        let(:atm_result_expected) do
+          {
+            "caixa" => {
+              "caixaDisponivel" => false,
+              "notas" => {
+                "notasDez" => 1,
+                "notasVinte" => 3,
+                "notasCinquenta" => 4,
+                "notasCem" => 1
+              }
+            },
+            "erros" => []
+          }
+        end
+
+        it "returns atm without the notes that were taken when withdrawing" do
+          atm_result = atm.withdraw(withdraw_hash: withdraw_hash)
+
+          expect(atm_result).to eq(atm_result_expected)
+        end
+      end
+
+      context "when there are two withdrawals" do
+        before do
+          atm.withdraw(withdraw_hash: withdraw_hash)
+        end
+
+        let(:withdraw_hash2) do
+          {
+            "saque" => {
+              "valor" => 290,
+              "horario" => "2024-02-13T13:00:00.000Z"
+            }
+          }
+        end
+        let(:atm_result_expected) do
+          {
+            "caixa" => {
+              "caixaDisponivel" => false,
+              "notas" => {
+                "notasDez" => 1,
+                "notasVinte" => 1,
+                "notasCinquenta" => 1,
+                "notasCem" => 0
+              }
+            },
+            "erros" => []
+          }
+        end
+
+        it "returns the ATM without the notes that were made on withdrawal 1 and withdrawal 2" do
+          atm_result = atm.withdraw(withdraw_hash: withdraw_hash2)
+
+          expect(atm_result).to eq(atm_result_expected)
+        end
+      end
+
+    end
+
   end
 
   describe ".total_value" do

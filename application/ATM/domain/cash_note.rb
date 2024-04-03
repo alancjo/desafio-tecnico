@@ -24,6 +24,18 @@ module Application
           @quantity += quantity
         end
 
+        def withdraw(value_to_withdraw)
+          withdraw_quantity = value_to_withdraw / @value
+
+          return value_to_withdraw if (@quantity <= 0 || withdraw_quantity < 1)
+
+          quantity_to_remove = @quantity < withdraw_quantity ? @quantity : withdraw_quantity
+
+          @quantity -= quantity_to_remove
+
+          value_to_withdraw - (@value * quantity_to_remove)
+        end
+
         def virtual_note?
           @id.nil?
         end
