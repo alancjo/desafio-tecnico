@@ -20,6 +20,10 @@ module Application
           @cash_machine_domain.new(available: cash_machine["caixaDisponivel"])
         end
 
+        def self.virtual_cash_machine
+          Application::ATM::Domain::CashMachine.new
+        end
+
       end
     end
   end

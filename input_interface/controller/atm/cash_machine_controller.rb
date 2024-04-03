@@ -1,22 +1,23 @@
-require "./config/application.rb"
-
 module InputInterface
   module Controller
     module Atm
       class CashMachineController
 
-        def self.build(first_request: nil)
-          if first_request
+        attr_reader :cash_machine, :virtual_cash_machine
+
+        def self.build(first_supply_request: false)
+          if first_supply_request
             return new(
-              cash_machine: translate_cash_machine(JSON.parse(first_request))
+              cash_machine: translate_cash_machine(JSON.parse(first_supply_request))
             )
           end
 
-          new(cash_machine: nil)
+          new(virtual_cash_machine: Application::ATM::Adapter::CashMachineAdapter.virtual_cash_machine)
         end
 
-        def initialize(cash_machine: nil)
+        def initialize(cash_machine: nil, virtual_cash_machine: nil)
           @cash_machine = cash_machine
+          @virtual_cash_machine = virtual_cash_machine
         end
 
         def supply(request)
@@ -31,7 +32,10 @@ module InputInterface
         end
 
         def withdrawal(request)
-          return JSON.parse(request)
+          cash_machine = @cash_machine || @virtual_cash_machine
+
+          uc = Application::ATM::UseCase::AtmWithdrawal.build(cash_machine: cash_machine)
+          uc.execute(withdrawal: JSON.parse(request))
         end
 
         private
@@ -44,10 +48,6 @@ module InputInterface
         def translate_cash_notes(request)
           adapter = Application::ATM::Adapter::CashNoteAdapter.build
           adapter.translate_collection!(request)
-        end
-
-        def withdrawal_use_case
-          Application::ATM::UseCase::AtmSupply.build
         end
 
       end

@@ -77,6 +77,10 @@ module Application
           @available = availability
         end
 
+        def render_error_json(message)
+          render_response_json(cash_notes: @cash_notes, errors: [message])
+        end
+
         private
 
         def build_hash_from_all_notes(cash_notes)

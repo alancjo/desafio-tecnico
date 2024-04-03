@@ -5,17 +5,18 @@ module InputInterface
     module Atm
       class Home
 
-        @@controller
+        @@default_controller = nil
+        @@already_caller_supply = false
 
         def self.initialize_application
           welcome_message()
 
-          run_operation(first_caller: true)
+          run_operation()
         end
 
         private
 
-        def self.run_operation(first_caller: false)
+        def self.run_operation
           chosen_option = operation_options()
 
           while !['1', '2'].include?(chosen_option.strip)
@@ -27,14 +28,18 @@ module InputInterface
           if chosen_option == '1'
             request_json = input_supply_json
 
-            @@controller = build_controller(request_json) if first_caller
+            @@default_controller = build_controller(request_json) unless @@already_caller_supply
+            @@already_caller_supply = true
 
-            response = @@controller.supply(request_json)
+            response = @@default_controller.supply(request_json)
 
             render(request_json, response)
           else
+            controller = @@default_controller.nil? ? build_controller_without_atm : @@default_controller
+
             request_json = input_withdrawal_json
-            response = @@controller.withdrawal(request_json)
+
+            response = controller.withdrawal(request_json)
 
             render(request_json, response)
           end
@@ -117,7 +122,11 @@ module InputInterface
         end
 
         def self.build_controller(request)
-          InputInterface::Controller::Atm::CashMachineController.build(first_request: request)
+          InputInterface::Controller::Atm::CashMachineController.build(first_supply_request: request)
+        end
+
+        def self.build_controller_without_atm
+          InputInterface::Controller::Atm::CashMachineController.build
         end
 
         def self.render(request, response)

@@ -1,5 +1,3 @@
-require "./config/application.rb"
-
 module Application
   module ATM
     module UseCase
@@ -29,12 +27,6 @@ module Application
             @cash_machine.update_availability(available)
             return { erros: ["erro-#{e.message}"]}
           end
-        end
-
-        private
-
-        def render_response_json
-          # to-do
         end
 
       end
