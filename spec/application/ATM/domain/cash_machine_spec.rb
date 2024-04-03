@@ -145,42 +145,87 @@ RSpec.describe Application::ATM::Domain::CashMachine do
     end
     subject(:atm) { described_class.new(cash_notes: cash_notes, available: true) }
 
-    context "when the value to withdraw than more atm value[R$ 450.00]" do
-      let(:withdraw_hash) do
-        {
-          "saque" => {
-            "valor" => 500,
-            "horario" => "2019-02-13T11:01:01.000Z"
+    context "when the withdrawal operation fails" do
+
+      context "when atm non-existent" do
+        subject(:atm) { described_class.new(available: true) }
+        let(:withdraw_hash) do
+          {
+            "saque" => {
+              "valor" => 100,
+              "horario" => "2019-02-13T11:01:01.000Z"
+            }
           }
-        }
+        end
+
+        it "raises a non-existent exception" do
+          expect {
+            atm.withdraw(withdraw_hash: withdraw_hash)
+          }.to raise_error(Application::ATM::Exceptions::NonExistentAtmException, "caixa-inexistente")
+        end
       end
 
-      it "raises an exception" do
-        expect {
-          atm.withdraw(withdraw_hash: withdraw_hash)
-        }.to raise_error(Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException, "valor-indisponivel")
-      end
-    end
+      context "when the atm unavailable for withdrawal" do
+        before do
+          atm.update_availability(false)
+        end
 
-    # to-do
-    xcontext "when the same amount tries to be withdrawn in an interval of less than 10 minutes" do
-      before do
-        atm.withdraw(withdraw_hash: { "saque" => { "valor" => 140, "horario" => "2019-02-13T11:00:00.000Z" } })
-      end
-
-      let(:withdraw_hash) do
-        {
-          "saque" => {
-            "valor" => 140,
-            "horario" => "2019-02-13T11:09:00.000Z"
+        let(:withdraw_hash) do
+          {
+            "saque" => {
+              "valor" => 100,
+              "horario" => "2019-02-13T11:01:01.000Z"
+            }
           }
-        }
+        end
+
+        it "raises an unavailable for withdrawal exception" do
+          expect {
+            atm.withdraw(withdraw_hash: withdraw_hash)
+          }.to raise_error(Application::ATM::Exceptions::AtmUnavailableForWithdrawalException, "caixa-indisponível")
+        end
       end
 
-      it "raises an exception" do
-        expect {
-          atm.withdraw(withdraw_hash: withdraw_hash)
-        }.to raise_error(Application::ATM::Exceptions::DoubleWithdrawalException, "saque-duplicado")
+      context "when the value to withdraw than more atm value[R$ 450.00]" do
+        let(:withdraw_hash) do
+          {
+            "saque" => {
+              "valor" => 500,
+              "horario" => "2019-02-13T11:01:01.000Z"
+            }
+          }
+        end
+
+        it "raises an amount unavailable atm exception" do
+          expect {
+            atm.withdraw(withdraw_hash: withdraw_hash)
+          }.to raise_error(Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException, "valor-indisponivel")
+        end
+      end
+
+      context "when the same amount tries to be withdrawn in an interval of less than 10 minutes" do
+        before do
+          atm.withdraw(withdraw_hash: { "saque" => { "valor" => 50, "horario" => "2019-02-13T11:10:00.000Z" } })
+          atm.withdraw(withdraw_hash: { "saque" => { "valor" => 10, "horario" => "2019-02-13T11:10:40.000Z" } })
+          atm.withdraw(withdraw_hash: { "saque" => { "valor" => 70, "horario" => "2019-02-13T11:11:00.000Z" } })
+          atm.withdraw(withdraw_hash: { "saque" => { "valor" => 100, "horario" => "2019-02-13T11:12:00.000Z" } })
+          atm.withdraw(withdraw_hash: { "saque" => { "valor" => 120, "horario" => "2019-02-13T11:13:00.000Z" } })
+        end
+
+        let(:withdraw_hash) do
+          {
+            "saque" => {
+              "valor" => 70,
+              "horario" => "2019-02-13T11:15:00.000Z"
+            }
+          }
+        end
+
+        it "raises a double withdrawal exception" do
+          expect {
+            atm.withdraw(withdraw_hash: withdraw_hash)
+          }.to raise_error(Application::ATM::Exceptions::DoubleWithdrawalException, "saque-duplicado")
+        end
       end
 
     end
