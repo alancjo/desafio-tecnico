@@ -32,7 +32,7 @@ RSpec.describe InputInterface::Controller::Atm::CashMachineController do
           response = controller.supply(request)
 
           expect(response).to eq(expected_result)
-          expect(controller.cash_machine.total_value).to eq(5800)
+          expect(controller.cash_machine.total_value).to eq(5500)
         end
       end
 
@@ -66,7 +66,7 @@ RSpec.describe InputInterface::Controller::Atm::CashMachineController do
           response = controller.supply(request2)
 
           expect(response).to eq(expected_result)
-          expect(controller.cash_machine.total_value).to eq(5870)
+          expect(controller.cash_machine.total_value).to eq(5800)
         end
       end
     end
@@ -222,7 +222,37 @@ RSpec.describe InputInterface::Controller::Atm::CashMachineController do
           expect(response).to eq(expected_response)
         end
       end
+    end
 
+    context "when the withdrawal operation was successful" do
+      subject(:controller) { described_class.build(first_supply_request: supply_request) }
+      let(:supply_request) { read_json_file("supply_with_available_atm.json") }
+      let(:withdrawal_request) { read_json_file("withdrawal.json") }
+
+      before do
+        controller.supply(supply_request)
+      end
+
+      let(:expected_response) do
+        {
+          "caixa" => {
+            "caixaDisponivel" => true,
+            "notas" => {
+              "notasDez" => 1,
+              "notasVinte" => 2,
+              "notasCinquenta" => 1,
+              "notasCem" => 1
+            }
+          },
+          "erros" => []
+        }
+      end
+
+      it "returns atm withdrawal success message" do
+        response = controller.withdrawal(withdrawal_request)
+
+        expect(response).to eq(expected_response)
+      end
     end
 
   end
