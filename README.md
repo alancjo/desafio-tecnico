@@ -128,5 +128,16 @@ Realizei a criação dos testes unitários e de integração da aplicação. Em 
 
 > Escreva testes e evite dor de cabeça! :)
 
+##### arquivos de teste
+
+##### Domínio
+- cash_machine_spec.rb
+- cash_note_spec.rb
+- atm_supply_spec.rb
+- atm_withdrawal_spec.rb
+
+##### Interface
+- cash_machine_controller_spec.rb
+
 ![suíte de testes](./docs/img/coverage.png)
 
