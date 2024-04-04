@@ -96,9 +96,9 @@ RSpec.describe InputInterface::Controller::Atm::CashMachineController do
         end
 
         it "operations fails with error message[caixa-em-uso]" do
-          result = controller.supply(request)
+          response = controller.supply(request)
 
-          expect(result).to eq(expected_result)
+          expect(response).to eq(expected_result)
         end
       end
 
@@ -106,6 +106,124 @@ RSpec.describe InputInterface::Controller::Atm::CashMachineController do
   end
 
   describe ".withdrawal" do
+    let(:withdrawal_request) { read_json_file("withdrawal.json") }
+
+    context "when the withdrawal operation fails" do
+      subject(:controller) { described_class.build }
+
+      context "when atm non-existent" do
+        let(:expected_response) do
+          {
+            "caixa" => {},
+            "erros" => ["caixa-inexistente"]
+          }
+        end
+
+        it "returns non-existent atm message error" do
+          response = controller.withdrawal(withdrawal_request)
+
+          expect(response).to eq(expected_response)
+        end
+      end
+
+      context "when the atm unavailable for withdrawal"  do
+        let(:supply_request) { read_json_file("supply.json") }
+        subject(:controller) { described_class.build(first_supply_request: supply_request) }
+
+        before do
+          controller.supply(supply_request)
+        end
+
+        let(:expected_response) do
+          {
+            "caixa" => {
+              "caixaDisponivel" => false,
+              "notas" => {
+                "notasDez" => 100,
+                "notasVinte" => 50,
+                "notasCinquenta" => 10,
+                "notasCem" => 30
+              }
+            },
+            "erros" => ["caixa-indisponível"]
+          }
+        end
+
+        it "returns an unavailable for withdrawal message" do
+          response = controller.withdrawal(withdrawal_request)
+
+          expect(response).to eq(expected_response)
+        end
+
+      end
+
+      context "when the value to withdraw than more atm value[R$ 300.00]" do
+        subject(:controller) { described_class.build(first_supply_request: supply_request) }
+        let(:supply_request) { read_json_file("supply_with_available_atm.json") }
+        let(:withdrawal_request) { read_json_file("withdrawal_exceeds_atm_value.json") }
+
+        before do
+          controller.supply(supply_request)
+        end
+
+        let(:expected_response) do
+          {
+            "caixa" => {
+              "caixaDisponivel" => true,
+              "notas" => {
+                "notasDez" => 1,
+                "notasVinte" => 2,
+                "notasCinquenta" => 1,
+                "notasCem" => 2
+              }
+            },
+            "erros" => ["valor-indisponível"]
+          }
+        end
+
+        it "returns an amount unavailable atm message" do
+          response = controller.withdrawal(withdrawal_request)
+
+          expect(response).to eq(expected_response)
+        end
+      end
+
+      context "when the same amount tries to be withdrawn in an interval of less than 10 minutes" do
+        subject(:controller) { described_class.build(first_supply_request: supply_request) }
+        let(:supply_request) { read_json_file("supply_with_available_atm.json") }
+        let(:withdrawal_request) { read_json_file("withdrawal.json") }
+
+        before do
+          controller.supply(supply_request)
+          controller.withdrawal(withdrawal_request)
+        end
+
+        let(:expected_response) do
+          {
+            "caixa" => {
+              "caixaDisponivel" => true,
+              "notas" => {
+                "notasDez" => 1,
+                "notasVinte" => 2,
+                "notasCinquenta" => 1,
+                "notasCem" => 1
+              }
+            },
+            "erros" => ["saque-duplicado"],
+            "ultimos_saques" => [
+              { "horario" => "2019-02-13T11:01:01.000Z", "valor"=> 100 }
+            ]
+          }
+        end
+
+        it "returns an amount unavailable atm message" do
+          response = controller.withdrawal(withdrawal_request)
+
+          expect(response).to eq(expected_response)
+        end
+      end
+
+    end
 
   end
 
