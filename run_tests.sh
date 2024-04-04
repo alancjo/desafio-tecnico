@@ -2,4 +2,10 @@ if ! docker image inspect locaweb >/dev/null 2>&1; then
     docker build -t locaweb .
 fi
 
-docker run -v $(pwd):/locaweb locaweb bundle exec rspec
+if ! docker container inspect locaweb-container >/dev/null 2>&1; then
+    docker run -itd --name locaweb-container locaweb
+else
+    docker start locaweb-container
+fi
+
+docker exec -it locaweb-container bash -c "bundle exec rspec"
