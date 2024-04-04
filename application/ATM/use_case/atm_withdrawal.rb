@@ -18,9 +18,8 @@ module Application
             @cash_machine.withdraw(withdraw_hash: withdrawal)
           rescue Application::ATM::Exceptions::NonExistentAtmException => e
             return { "caixa" => {}, "erros" => [e.message] }
-          rescue Application::ATM::Exceptions::AtmUnavailableForWithdrawalException => e
-            return @cash_machine.render_error_json(e.message)
-          rescue Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException => e
+          rescue Application::ATM::Exceptions::AtmUnavailableForWithdrawalException,
+                 Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException => e
             return @cash_machine.render_error_json(e.message)
           rescue Application::ATM::Exceptions::DoubleWithdrawalException => e
             return @cash_machine.render_error_json(e.message).merge({ "ultimos_saques" => @cash_machine.withdrawal_record })
