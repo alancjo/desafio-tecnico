@@ -1,0 +1,11 @@
+{
+    "caixa": {
+        "caixaDisponivel": true,
+        "notas": {
+            "notasDez": 1,
+            "notasVinte": 2,
+            "notasCinquenta": 1,
+            "notasCem": 2
+        }
+    }
+}
