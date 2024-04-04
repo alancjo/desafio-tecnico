@@ -23,7 +23,7 @@ module Application
           rescue Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException => e
             return @cash_machine.render_error_json(e.message)
           rescue Application::ATM::Exceptions::DoubleWithdrawalException => e
-            return @cash_machine.render_error_json(e.message).merge({ "ultimos saques" => @cash_machine.withdrawal_record })
+            return @cash_machine.render_error_json(e.message).merge({ "ultimos_saques" => @cash_machine.withdrawal_record })
           rescue => e
             return { "erros" => [e.message] }
           end

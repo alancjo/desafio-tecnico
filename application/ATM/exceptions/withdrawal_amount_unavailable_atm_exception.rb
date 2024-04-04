@@ -4,7 +4,7 @@ module Application
       class WithdrawalAmountUnavailableAtmException < StandardError
 
         def initialize(message = nil)
-          message ||= "valor-indisponivel"
+          message ||= "valor-indisponível"
           super(message)
         end
 

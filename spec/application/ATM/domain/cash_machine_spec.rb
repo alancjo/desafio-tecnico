@@ -198,7 +198,7 @@ RSpec.describe Application::ATM::Domain::CashMachine do
         it "raises an amount unavailable atm exception" do
           expect {
             atm.withdraw(withdraw_hash: withdraw_hash)
-          }.to raise_error(Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException, "valor-indisponivel")
+          }.to raise_error(Application::ATM::Exceptions::WithdrawalAmountUnavailableAtmException, "valor-indisponível")
         end
       end
 
