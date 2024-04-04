@@ -50,6 +50,30 @@ Similar aos outros scripts, porém o comando final acessa o console bash do cont
 > Atenção! Cuidado com o arquivo `config/application.rb`. É nele que é feito o autoload das classes para o teste e para a view (que starta tudo). Sem esse autoload a plicação não funcionará! Sem o `.rspec` os testes não funcionarão pois o load do `spec_helper` está lá, que por sua vez carrega o `application.rb` para os testes. Foi uma maneira mais clean para não carregar os arquivos em todo lugar, como o DRY (Don't Repeat Yourself) prega =D
 
 ----
+
+### Funcionamento da aplicação
+
+Após rodar o script que starta a aplicação, a seguinte tela irá aparecer.
+
+#### Passo 1 - Tela de boas vindas
+![tela inicial](./docs/img/welcome_screen.png)
+
+Com isso, o usuário poderá escolher qual operação deseja solicitar. 1 para abastecer e 2 para saque. Caso o valor inserido não seja um dos dois, o programa irá pedir para insirar novamente.
+
+#### Passo 2 - Entrada do saque/abastecimento
+![abastecimento](./docs/img/fill.png)
+
+Será necessário colocar uma entrada em json inline para o abastecimento. Logo após, o programa irá mostrar entrada e saída, respectivamente. Há diversos cenários cobertos, então caso a operação seja feita com sucesso, o array de erros[] estará vazio, cason contrário, estará com o erro em questão.
+
+#### Passo 3 - Voltar ao passo 2 ou terminar programa
+![saída](./docs/img/output.png)
+
+A saída seja de saque ou abastecimento (conforme escolhido) será mostrado. Após isso o programa irá perguntar se deseja realizar outra operação ou não. Caso prossiga, o programa voltará ao passo 2, caso contrário irá terminar o programa como a iamgem abaixo.
+
+![final programa](./docs/img/the_end.png)
+
+---
+
 ### Tecnologias utilizadas
 
 - Ruby 3.3.0 (versão estável mais recente)
