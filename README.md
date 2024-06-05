@@ -1,4 +1,4 @@
-# Desafio Técnico Locaweb
+# Desafio Técnico Dev Pleno
 
 > Por favor, para faciltar a visualização do README, abra-o em um visualizador de markdown (pode usar o markdown preview, uma extensão do vscode e outros editores).
 
