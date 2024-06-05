@@ -1,5 +1,7 @@
 # Desafio Técnico Dev Pleno
 
+O desafio consiste em criar um sistema de caixa eletrônico stdin stdou com funcionalidade de abastecimento e saque. Todas essas funcionalidade possuem validações de consistência de dados.
+
 > Por favor, para faciltar a visualização do README, abra-o em um visualizador de markdown (pode usar o markdown preview, uma extensão do vscode e outros editores).
 
 -----
